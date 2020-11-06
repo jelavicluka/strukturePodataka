@@ -1,0 +1,165 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define max 200
+
+struct osoba;
+typedef struct osoba* Pozicija;
+typedef struct osoba {
+	char ime[max];
+	char prezime[max];
+	int godinaRodenja;
+	Pozicija next;
+}Osoba;
+
+void unos(char*, char*, int, Pozicija);                   //unos na pocetak
+void unosKraj(char*, char*, int, Pozicija);               //unos na kraj
+void Ispis(Pozicija);                                     //ispis liste
+Pozicija trazi(char* , Pozicija);                         //trazenje odredenog elementa po prezimenu
+void brisi(char* , Pozicija);                             //brisanje odredenog elementa po imenu
+void unosIzaOdredenog(char*, char*, int, Pozicija);       //unos iza odredenog elementa
+void unosIspredOdredenog(char*, char*, int, Pozicija);    //unos ispred odredenog elementa
+
+int main() {
+	struct osoba Head;
+	Head.next = NULL;
+
+	char ime[max];
+	char prezime[max];
+	char pomocna1[max];
+	char pomocna2[max];
+	char pomocna3[max];
+	int godinaRodenja;
+
+	printf("'~' ako ste gotovi s unosom\n");
+
+	while (1) {
+		printf("Unesite svoje ime: ");
+		scanf("%s", ime);
+		if (strcmp(ime, "~") == 0) //ako se unese "~" za ime izlazi iz while petlje
+			break;
+
+		printf("Unesite svoje prezime: ");
+		scanf("%s", prezime);
+
+		printf("Unesite godinu rodenja: ");
+		scanf("%d", &godinaRodenja);
+
+		printf("Zelite li unijeti na pocetak, kraj,iza ili ispred odredenog?");
+		scanf("%s", pomocna1);
+
+		if (strcmp(pomocna1, "pocetak") == 0) {
+			unos(ime, prezime, godinaRodenja, &Head); //unosi na pocetak
+		}
+		else if (strcmp(pomocna1, "iza") == 0) {
+			unosIzaOdredenog(ime, prezime, godinaRodenja, &Head); //unosi iza odredenog
+		}
+		else if (strcmp(pomocna1, "ispred") == 0) {
+			unosIspredOdredenog(ime, prezime, godinaRodenja, &Head);
+		}
+		else {
+			unosKraj(ime, prezime, godinaRodenja, &Head); //unosi na kraj
+		}
+	}
+
+	Ispis(Head.next);
+
+	printf("\nAdresu kojeg prezimena zelite?");
+	scanf("%s", pomocna2);
+
+	if(trazi(pomocna2, Head.next) != 0)
+	printf("Adresa prezimena %s je %d\n", pomocna2, trazi(pomocna2, Head.next));
+
+	printf("Element s kojim imenom zelite izbrisati? ");
+	scanf("%s", pomocna3);
+
+	brisi(pomocna3, &Head);
+
+	Ispis(Head.next);
+	
+	return 0;
+}
+
+void unos(char* ime, char* prezime, int god, Pozicija P) {
+	Pozicija q;
+	q = (Pozicija)malloc(sizeof(Osoba));
+
+	strcpy(q->ime, ime);
+	strcpy(q->prezime, prezime);
+	q->godinaRodenja = god;
+
+	q->next = P->next;
+	P->next = q;
+}
+
+void Ispis(Pozicija P) {
+	while (P != NULL) {
+		printf("  %s %s %d ::", P->ime, P->prezime, P->godinaRodenja);
+		P = P->next;
+	}
+}
+
+void unosKraj(char* ime, char* prezime, int god, Pozicija P) {
+      while (P->next != NULL) {
+		P = P->next;
+	}
+	unos(ime, prezime, god, P);
+}
+
+Pozicija trazi(char* prezime, Pozicija P) {
+	while (P != NULL && strcmp(P->prezime, prezime) != 0) {
+		P = P->next;
+	}
+	if (P == 0)
+		printf("Element koji ste unijeli ne postoji u listi!\n");
+		
+	return P;
+}
+
+Pozicija traziPret(char* ime, Pozicija P) {
+	while (P->next != NULL && strcmp(P->next->ime, ime) != 0) {
+		P = P->next;
+	}
+	if (P->next == NULL) {
+		printf("Element ne postoji u listi\n");
+		return NULL;
+	}
+	return P;
+}
+
+void brisi(char* ime, Pozicija P) {
+	Pozicija prev;
+
+	prev = traziPret(ime, P);
+	if (prev != NULL) {
+		P = prev->next;
+		prev->next = P->next;
+		free(P);
+	}
+}
+
+void unosIzaOdredenog(char* ime, char* prezime, int god, Pozicija P) {
+	char pomocna[max];
+
+	printf("Iza elementa s kojim prezimenom zelite dodati?");
+	scanf("%s", pomocna);
+
+	while (P != trazi(pomocna, P)) {
+		P = P->next;
+	}
+	unos(ime, prezime, god, P);
+}
+
+void unosIspredOdredenog(char* ime,char* prezime, int god, Pozicija P) {
+	char pomocna[max];
+
+	printf("Ispred elementa s kojim prezimenom zelite dodati?");
+	scanf("%s", pomocna);
+
+	while (P->next != NULL && strcmp(pomocna, P->next->prezime) != 0) {
+		P = P->next;
+	}
+
+	unos(ime, prezime, god, P);
+}

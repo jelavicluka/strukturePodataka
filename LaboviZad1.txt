@@ -1,0 +1,45 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#pragma warning(disable:4996)
+
+typedef struct student 
+{
+	char ime[20];
+	char prezime[30];
+	int bodovi;
+}Std;
+
+int main() 
+{
+	int brojac = 0;
+	int brBodova = 60;
+	Std* lista;
+	FILE* fp;
+    fp = fopen("student.txt", "r");
+    char singleLine[150];
+	int line = 0;
+
+	while (!feof(fp)) 
+	{
+		fgets(singleLine, 150, fp);
+		line++;	
+	}
+	rewind(fp);
+
+	printf("Broj linija je %d\n", line);
+
+	lista = (Std*)malloc(sizeof(Std)*line);
+
+	while (!feof(fp)) 
+	{
+		
+		fscanf(fp, "%s %s %d", &lista->ime, &lista->prezime, &lista->bodovi);
+		printf("%s %s %d/60 %.2f%% \n", lista->ime, lista->prezime, lista->bodovi, ((float)(lista->bodovi)/(float)brBodova)*100);
+	}
+
+
+	fclose(fp);
+
+	return 0;
+}
