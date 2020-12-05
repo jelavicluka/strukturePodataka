@@ -1,0 +1,95 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+struct cvor;
+typedef struct cvor* Pozicija;
+struct cvor {
+	int El;
+	Pozicija next;
+};
+
+void push(int, Pozicija);
+int randomNum(int, int, int, Pozicija);
+void ispis(Pozicija);
+void popStog(Pozicija);
+void popRed(Pozicija);
+
+int main() {
+	struct cvor stog;
+	struct cvor red;
+	stog.next = NULL;
+	red.next = NULL;
+
+	srand(time(0));
+
+	randomNum(10, 100, 10, &stog);
+	printf("Stog: ");
+	ispis(stog.next);
+
+	randomNum(10, 100, 10, &red);
+	printf("Red: ");
+	ispis(red.next);
+
+	popStog(&stog);
+	printf("Stog: ");
+	ispis(stog.next);
+
+	popRed(&red);
+	printf("Red: ");
+	ispis(red.next);
+
+	return 0;
+}
+
+void push(int br, Pozicija P) {
+	Pozicija q;
+	q = (Pozicija)malloc(sizeof(struct cvor));
+	if (q == NULL)
+		printf("Neuspjelo alocuiranje memorije!\n");
+
+	q->El = br;
+
+	q->next = P->next;
+	P->next = q;
+}
+
+int randomNum(int lower, int upper, int count, Pozicija P) {
+	int br = 0;
+	int i = 0;
+	for (i = 0; i < count; i++) {
+		br = (rand() % (upper - lower + 1)) + lower;
+		push(br, P);
+	}
+}
+
+void ispis(Pozicija P) {
+	while (P != NULL) {
+		printf("%d ", P->El);
+		P = P->next;
+	}
+	printf("\n");
+}
+
+void popStog(Pozicija P) {
+	Pozicija prev;
+	prev = P;
+	P = P->next;
+
+	prev->next = P->next;
+	free(P);
+}
+
+void popRed(Pozicija P) {
+	Pozicija prev;
+	prev = P;
+	P = P->next;
+
+	while (P->next != NULL) {
+		prev = P;
+		P = P->next;
+	}
+	prev->next = NULL;
+	free(P);
+}
