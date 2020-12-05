@@ -1,0 +1,124 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+
+struct lista;
+typedef struct lista* Pozicija;
+struct lista {
+	int El;
+	Pozicija next;
+};
+
+void citajDatoteku(char*, Pozicija);
+void sortUnos(int, Pozicija);
+void unos(int, Pozicija);
+void ispis(Pozicija);
+void unija(Pozicija, Pozicija, Pozicija);
+void presjek(Pozicija, Pozicija, Pozicija);
+
+int main() {
+	struct lista l1, l2, l3, l4;
+	l1.next = NULL;
+	l2.next = NULL;
+	l3.next = NULL;
+	l4.next = NULL;
+
+	citajDatoteku("lista1.txt", &l1);
+	citajDatoteku("lista2.txt", &l2);
+	ispis(l1.next);
+	ispis(l2.next);
+
+	unija(l1.next, l2.next, &l3);
+	printf("Unija: ");
+	ispis(l3.next);
+
+	presjek(l1.next, l2.next, &l4);
+	printf("Presjek: ");
+	ispis(l4.next);
+
+	return 0;
+}
+
+void citajDatoteku(char* file, Pozicija P) {
+	int br;
+	FILE* fp;
+	fp = fopen(file, "r");
+
+	while (!feof(fp)) {
+		fscanf(fp, "%d", &br);
+		sortUnos(br, P);
+	}
+}
+
+void unos(int br, Pozicija P) {
+	Pozicija q;
+	q = (Pozicija)malloc(sizeof(struct lista));
+
+	q->El = br;
+
+	q->next = P->next;
+	P->next = q;
+}
+
+void sortUnos(int br, Pozicija P) {
+	while (P->next != NULL && P->next->El < br) {
+		P = P->next;
+	}
+	unos(br, P);
+}
+
+void ispis(Pozicija P) {
+	while (P != NULL) {
+		printf("%d ", P->El);
+		P = P->next;
+	}
+	printf("\n - - - - - - - - - - - - - - \n");
+}
+
+void unija(Pozicija l1, Pozicija l2, Pozicija l3) {
+	int br;
+
+	while (l1 != NULL || l2 != NULL) {
+		if (l1 == NULL) {
+			br = l2->El;
+			l2 = l2->next;
+		}
+		else if (l2 == NULL) {
+			br = l1->El;
+			l1 = l1->next;
+		}
+		else if (l1->El < l2->El) {
+			br = l1->El;
+			l1 = l1->next;
+		}
+		else if (l1->El > l2->El) {
+			br = l2->El;
+			l2 = l2->next;
+		}
+		else {
+			br = l1->El;
+			l1 = l1->next;
+			l2 = l2->next;
+		}
+		sortUnos(br, l3);
+	}
+}
+
+void presjek(Pozicija l1, Pozicija l2, Pozicija l4) {
+	int br;
+	while (l1 != NULL && l2 != NULL) {
+		if (l1->El < l2->El) {
+			l1 = l1->next;
+		}
+		else if (l1->El > l2->El) {
+			l2 = l2->next;
+		}
+		else {
+			br = l1->El;
+			sortUnos(br, l4);
+			
+			l1 = l1->next;
+			l2 = l2->next;
+		}
+	}
+}
