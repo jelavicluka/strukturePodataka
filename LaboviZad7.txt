@@ -1,0 +1,171 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define MAX 20
+
+struct stog;
+typedef struct stog* Pozicija;
+struct stog {
+    float El;
+    char Operacija;
+    Pozicija next;
+};
+
+void pushEl(float, Pozicija);
+void pushOperacija(char, Pozicija);
+void popSve(Pozicija);
+void citajDatoteku(char*, Pozicija);
+void ispis(Pozicija P);
+void operacija(Pozicija);
+float prviEl(Pozicija P);
+float drugiEl(Pozicija P);
+
+int main() {
+    struct stog Head;
+    Head.next = NULL;
+
+    citajDatoteku("postfix.txt", &Head);
+    ispis(Head.next);
+
+    return 0;
+}
+
+void pushEl(float br, Pozicija P) {
+    Pozicija q;
+    q = (Pozicija)malloc(sizeof(struct stog));
+    if (q == NULL)
+        printf("Neuspjesna alokacija memorije!");
+
+    q->El = br;
+    q->Operacija = NULL;
+
+    q->next = P->next;
+    P->next = q;
+}
+
+void pushOperacija(char operacija, Pozicija P) {
+    Pozicija q;
+    q = (Pozicija)malloc(sizeof(struct stog));
+    if (q == NULL)
+        printf("Neuspjesna alokacija memorije");
+
+    q->Operacija = operacija;
+    q->El = 0.0;
+
+    q->next = P->next;
+    P->next = q;
+}
+
+void citajDatoteku(char* file, Pozicija P) {
+    int pomocna = 0;
+    float br = 0.0;
+    char izraz[MAX];
+    FILE* fp;
+    fp = fopen(file, "r");
+
+    if (fp == NULL)
+        printf("Greska u citanju datoteke!");
+
+    while (!feof(fp)) {
+     
+        fscanf(fp, "%s", izraz);                 //cita i sprema nekakav string sve do razmaka
+     
+        pomocna = sscanf(izraz, "%f", &br);      //ako je string sta je procita tipa floap pomocna je 1 a br jednak tom floatu, inace pomocna je -1
+
+        if (pomocna == 1) {
+            pushEl(br, P);
+        }
+        else {
+            pushOperacija(izraz[0], P);
+            operacija(P);
+        }
+    }
+}
+
+void ispis(Pozicija P) {
+    if (P == NULL) {
+        printf("Lista je prazna!");
+
+    }
+    while (P != NULL) {
+        if (P->Operacija == NULL)
+            printf(" %f ", P->El);
+
+        else
+            printf(" %c ", P->Operacija);
+
+        P = P->next;
+    }
+}
+
+void operacija(Pozicija P) {
+    char znak;
+    float rezultat = 0.0, prviBr = 0.0, drugiBr = 0.0;
+
+    prviBr = prviEl(P);
+    drugiBr = drugiEl(P);
+
+    znak = P->next->Operacija;
+
+    switch (znak) {
+    case '+':
+        rezultat = prviBr + drugiBr;
+        popSve(P);
+        pushEl(rezultat, P);
+        break;
+
+    case '-':
+        rezultat = prviBr - drugiBr;
+        popSve(P);
+        pushEl(rezultat, P);
+        break;
+
+    case '*':
+        rezultat = prviBr * drugiBr;
+        popSve(P);
+        pushEl(rezultat, P);
+        break;
+
+    case '/':
+        if (drugiBr != 0.0) {
+            rezultat = prviBr / drugiBr;
+            popSve(P);
+            pushEl(rezultat, P);
+            break;
+        }
+        else
+            printf("Greska! Ne moze se dijeliti s nulom!");
+    }
+}
+
+float prviEl(Pozicija P) {
+    while (P->next != NULL) {
+        P = P->next;
+    }
+    
+    return P->El;
+}
+
+float drugiEl(Pozicija P) {
+    Pozicija prev;
+    prev = P;
+    P = P->next;
+
+    while (P->next != NULL) {
+        prev = P;
+        P = P->next;
+    }
+
+    return prev->El;
+}
+
+void popSve(Pozicija P) {
+    Pozicija temp;
+
+    while (P->next != NULL) {
+        temp = P->next;
+        P->next = temp->next;
+        free(temp);
+    }
+}
