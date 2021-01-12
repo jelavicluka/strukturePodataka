@@ -1,0 +1,192 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define MAX 256
+
+struct dir;
+typedef struct dir* Pozicija;
+struct dir {
+	char ime_direktorija[MAX];
+	Pozicija child;
+	Pozicija sibling;
+};
+
+typedef struct stog* PozicijaStoga;
+struct stog {
+	Pozicija P;
+	PozicijaStoga next;
+};
+
+void md(char*, Pozicija);
+void createChild(char*, Pozicija);
+void createSibling(char*, Pozicija);
+Pozicija cd(char*, Pozicija, PozicijaStoga);
+void sortUnos(char*, Pozicija, Pozicija);
+void cdTocka(Pozicija);
+void pushStog(Pozicija, PozicijaStoga);
+void popStog(PozicijaStoga);
+void dir(Pozicija);
+Pozicija uzmiSaStoga(Pozicija, PozicijaStoga);
+Pozicija cd2Tocke(Pozicija, PozicijaStoga);
+void izlaz(Pozicija);
+
+int main() {
+	struct dir root;
+	root.child = NULL;
+	root.sibling = NULL;
+
+	struct stog Head;
+	Head.next = NULL;
+
+	strcpy(root.ime_direktorija, "C:");
+
+	struct dir* P;
+	P = &root;
+	pushStog(P, &Head);
+
+	md("Luka", P);
+
+	P = cd("Luka", P, &Head);
+
+	md("faks", P);
+	md("muzika", P);
+	md("filmovi", P);
+	md("auto", P);
+
+	dir(P);
+
+	P = cd2Tocke(P, &Head);
+
+	dir(P);
+
+	izlaz(P->child); //brisemo sve osim roota
+
+	return 0;
+}
+
+void md(char* ime, Pozicija P) {
+	if (P->child == NULL) {  //ako nema child napravi ga
+		createChild(ime, P);
+	}
+	else {
+		sortUnos(ime, P, P->child);    //createSibling
+	}
+}
+
+void createChild(char* ime, Pozicija P) {
+	Pozicija q;
+	q = (Pozicija)malloc(sizeof(struct dir));
+
+	if (q == NULL) {
+		printf("Neuspjela alokacija memorije!");
+	}
+
+	strcpy(q->ime_direktorija, ime);
+	q->sibling = NULL;
+	q->child = P->child;
+    P->child = q;
+}
+
+void createSibling(char* ime, Pozicija P) {
+	Pozicija q;
+	q = (Pozicija)malloc(sizeof(struct dir));
+
+	if (q == NULL) {
+		printf("Neuspjela alokacija memorije!");
+	}
+
+	strcpy(q->ime_direktorija, ime);
+	q->sibling = P->sibling;
+	P->sibling = q;
+}
+
+void sortUnos(char* ime, Pozicija P, Pozicija C) {
+	if (strcmp(ime, C->ime_direktorija) < 0) {
+		createChild(ime, P);
+		P = P->child;
+		P->sibling = C;
+	}
+	else {
+		while (C->sibling != NULL && strcmp(ime, C->sibling->ime_direktorija) > 0) {
+			C = C->sibling;
+		}
+		createSibling(ime, C);
+	}
+}
+
+Pozicija cd(char* ime, Pozicija P, PozicijaStoga S) {
+    P = P->child;
+
+	while (strcmp(ime, P->ime_direktorija) != 0) {
+		P = P->sibling;
+	}
+
+	pushStog(P, S);
+
+	return P;
+}
+
+void pushStog(Pozicija P, PozicijaStoga S) {
+	PozicijaStoga q;
+	q = (PozicijaStoga)malloc(sizeof(struct stog));
+
+	if (q == NULL) {
+		printf("Neuspjela alokacija memorije!");
+	}
+
+	q->P = P;
+	q->next = S->next;
+	S->next = q;
+}
+
+void popStog(PozicijaStoga S) {
+	if (S->next->next == NULL)
+		return;
+
+	PozicijaStoga prev;
+	prev = S;
+	S = S->next;
+
+	prev->next = S->next;
+	free(S);
+}
+
+void cdTocka(Pozicija P, PozicijaStoga S) {
+	P = S->next;
+
+	popStog(S);
+}
+
+void dir(Pozicija P) {
+	P = P->child;
+	printf("%s\n", P->ime_direktorija);
+
+	while (P->sibling != NULL) {
+		P = P->sibling;
+		printf("%s\n", P->ime_direktorija);
+	}
+}
+
+Pozicija uzmiSaStoga(Pozicija P, PozicijaStoga S) {
+	P = S->next->P;
+
+	return P;
+}
+
+Pozicija cd2Tocke(Pozicija P, PozicijaStoga S) {
+	popStog(S);
+
+	P = uzmiSaStoga(P, S);
+
+	return P;
+}
+
+void izlaz(Pozicija P) {
+	if (P == NULL)
+		return;
+
+	remove(P->sibling);
+	remove(P->child);
+	free(P);
+}
